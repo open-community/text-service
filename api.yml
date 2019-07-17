@@ -1,0 +1,690 @@
+openapi: 3.0.1
+info:
+  title: Text service
+  contact:
+    email: open-community@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/mit-license.php
+  version: 1.0.0
+  
+servers:
+  - description: "Localhost server"
+    url: http://localhost:3000
+
+tags:
+  - name: text
+    description: "Text operations"
+    
+  - name: authors
+    description: "Operation on authors (list, add, delete, ...)"
+    
+  - name: accounts
+    description: "Operation on accounts"
+
+paths:
+  /texts:
+    get:
+      summary: "Return a list of texts"
+      operationId: listTexts
+      tags:
+        - text
+      parameters:
+        - name: author.account.id
+          description: "Account ID of the text authors: If defined, then will return each text written by each of these authors"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: base64-url
+              
+        - name: author.identity.id
+          description: "Identity ID of the text authors: If defined, then will return each text written by each of these authors"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: base64-url
+              
+        - name: content
+          in: query
+          description: "If defined, will return only text containing the given search in the content"
+          schema:
+            type: array
+            items:
+              type: string
+              format: url-encoded
+              
+        - name: context.id
+          description: "Context ID of the text"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: base64-url
+
+        - name:  creation-date.max
+          description: "Will return only texts created at this date or before (lower or equal)"
+          in: query
+          example: "2019-01-31T23:59:59Z"
+          schema:
+            type: string
+            format: "ISO 8601 Extended Format"
+
+        - name: creation-date.min
+          description: "Will return only texts created at this date or after (greater or equal)"
+          in: query
+          example: "2019-01-01T00:00:00Z"
+          schema:
+            type: string
+            format: "ISO 8601 Extended Format"
+          
+        - name: deletion-date.max
+          description: "Will return only texts deleted at this date or before (lower or equal)"
+          in: query
+          example: "2019-02-10T23:59:59Z"
+          schema:
+            type: string
+            format: "ISO 8601 Extended Format"
+            
+        - name: deletion-date.min
+          description: "Will return only texts deleted at this date or after (greater or equal)"
+          in: query
+          example: "2019-01-02T00:00:00Z"
+          schema:
+            type: string
+            format: "ISO 8601 Extended Format"
+
+        - name: id
+          description: "ID of all identities to retrieve"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: base64-url
+              
+        - name: pagination.offset
+          description: "If defined, the search will skip the first \"pagination.offset\" result and return the next ones."
+          in: query
+          schema:
+            default: 0
+            type: number
+            
+        - name: pagination.size
+          description: "If defined, only the \"pagination.size\" first results after offset will be returned. By default, all results will be returned"
+          in: query
+          schema:
+            type: number
+
+        - name: search
+          description: "If defined, will return only text containing the given search in the title or content"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: url-encoded
+              
+        - name: sort
+          description: > 
+            Enable result sorting.
+          in: query
+          schema:
+            default: 
+              - _score
+            type: array
+            items:
+              type: string
+              enum:
+                - +creation-date
+                - -creation-date
+                - +deletion-date
+                - -deletion-date
+                - +content
+                - -content
+                - +title
+                - -title
+                - _score
+          
+        - name: owner.id
+          description: "ID of all text owners"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: base64-url
+          
+        - name: title
+          in: query
+          description: "If defined, will return only text containing the given search in the title"
+          schema:
+            type: array
+            items:
+              type: string
+              format: url-encoded
+          
+      responses:
+        200:
+          description: List of all texts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Text"
+    
+  /text:
+    put:
+      summary: "Create a new text"
+      operationId: createText
+      tags:
+        - text
+      requestBody:
+        description: >
+            Create a new text.<br>
+            Not check will be perfomed on data: neither account id or identity id will be checked.<br>
+            Formatting data will not be checked either.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Text"
+                  
+      responses:
+        200:
+          description: Text created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Text"
+
+        400:
+            description: Invalid data
+
+  /text/{id}:
+    get:
+      summary: "Return information about a text"
+      operationId: getText
+      tags:
+        - text
+      parameters:
+        - name: id
+          in: path
+          description: "ID of text to return"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+      responses:
+        200:
+          description: "Text information"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Text"
+                
+        404:
+          description: "Text not found"
+          
+    put:
+      summary: "Update an text"
+      operationId: updateText
+      tags:
+        - text
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text to update"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+      requestBody:
+        description: >
+          Updated text.
+          Only non-empty fields in the received object will be updated. This route will merge or update fields depending on their nature:
+            - "content" and "formatting" will be replaced by the new value (if non empty)
+            - "owners" and "authors" will be merged: new entries will be added to the actual list.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Text"
+              
+      responses:
+        200:
+          description: "Update successful"
+          
+        404:
+          description: "Text not found"
+          
+    delete:
+      summary: "Delete a text"
+      operationId: deleteText
+      tags:
+        - text
+      parameters:
+        - name: id
+          in: path
+          description: "ID of text to delete"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+      responses:
+        200:
+          description: "Delete successful"
+          
+        404:
+          description: "Text not found"
+          
+  /text/{id}/authors:
+    get:
+      summary: List all authors of a text
+      operationId: listAuthors
+      tags:
+        - accounts
+        - authors
+        - identities
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+      responses:
+        200:
+          description: "List of authors"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountIdentity"
+                
+        404:
+          description: "Text not found"
+      
+    put:
+      summary: Declare one or several new authors of an text.
+      operationId: addAuthors
+      tags:
+        - authors
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+      requestBody:
+        description: "Authors to add"
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/AccountIdentity"
+                
+      responses:
+        200:
+          description: "Authors added"
+          
+        404:
+          description: "Text not found"
+
+  /text/{id}/authors/accounts:
+    get:
+      summary: List all authors accounts of a text
+      operationId: listAuthorAccounts
+      tags:
+        - authors
+        - accounts
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+      responses:
+        200:
+          description: "List of accounts ID"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: base64-url
+                
+        404:
+          description: "Text not found"
+
+  /text/{id}/authors/account/{accountId}:
+    delete:
+      summary: "Delete a author of a text"
+      operationId: removeAuthorAccount
+      tags:
+        - accounts
+        - authors
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the identity"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: accountId
+          in: path
+          description: "ID of the account to delete"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: keepIdentities
+          in: query
+          description: "If true, then identities will not be removed (authors will remain without account link)"
+          schema:
+            type: boolean
+            default: false
+                
+      responses:
+        200:
+          description: Account removed from authors
+          
+        404:
+          description: Text not found
+          
+  /text/{id}/authors/account/{accountId}/identities:
+    get:
+      summary: "Return all identity used by an account to author a text"
+      operationId: getAuthorAccountIdentity
+      tags:
+        - account
+        - authors
+        - identities
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the identity"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: accountId
+          in: path
+          description: "ID of the account to delete"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+                
+      responses:
+        200:
+          description: List of identities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: base64-url
+          
+        404:
+          description: Text not found
+          
+  /text/{id}/authors/identities:
+    get:
+      summary: List all authors identities of a text
+      operationId: listAuthorIdentities
+      tags:
+        - authors
+        - identities
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+      responses:
+        200:
+          description: "List of identities ID"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: base64-url
+                
+        404:
+          description: "Text not found"
+          
+  /text/{id}/authors/identity/{identityId}:
+    delete:
+      summary: "Delete a identity of a text"
+      operationId: removeAuthorIdentity
+      tags:
+        - authors
+        - identities
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: identityId
+          in: path
+          description: "ID of the idenetity to delete"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: keepAccounts
+          in: query
+          description: "If true, then accounts will not be removed (authors will remain without account link)"
+          schema:
+            type: boolean
+            default: false
+                
+      responses:
+        200:
+          description: Identity removed from authors
+          
+        404:
+          description: Text not found
+
+  /text/{id}/authors/identity/{identityId}/accounts:
+    get:
+      summary: "Return all accounts used by an identity to author a text"
+      operationId: getAuthorIdentityAccounts
+      tags:
+        - account
+        - authors
+        - identities
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: identityId
+          in: path
+          description: "ID of the identity"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+                
+      responses:
+        200:
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: base64-url
+          
+        404:
+          description: Text not found
+
+  /text/{id}/owners:
+    get:
+      summary: List all owners of a text
+      operationId: listOwnhers
+      tags:
+        - account
+        - owners
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+      responses:
+        200:
+          description: "List of owners"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: base64-url
+                
+        404:
+          description: "Text not found"
+      
+    put:
+      summary: Declare one or several new owners of an text.
+      operationId: addOwners
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the text"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+      requestBody:
+        description: "Owners to add"
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: base64-url
+                
+      responses:
+        200:
+          description: "Owners added"
+          
+        404:
+          description: "Text not found"
+
+  /text/{id}/owners/${ownerId}:
+    delete:
+      summary: "Delete a owner of a text"
+      operationId: removeOwners
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the owner"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+            
+        - name: ownerId
+          in: path
+          description: "ID of the owner to delete"
+          required: true
+          schema:
+            type: string
+            format: base64-url
+                
+      responses:
+        200:
+          description: Owner removed
+          
+        404:
+          description: Text not found
+
+components:
+  schemas:
+    Text:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of the text
+          
+        text:
+          type: string
+          description: "Content of the text"
+          
+        formatting:
+          type: object
+          description: "Formatting data"
+
+        owners:
+          type: array
+          description: "List of text owners"
+          items:
+            type: string
+            format: base64-url
+
+        authors:
+          type: array
+          description: "List of text authors"
+          items:
+            $ref: "#/components/schemas/AccountIdentity"
+
+    AccountIdentity:
+      type: object
+      properties:
+        account:
+          type: object
+          properties:
+            id: 
+              type: string
+              description: ID of the owner account
+              
+        identity:
+          type: object
+          properties:
+            id:
+              type: string
+              description: ID of the owner identity
