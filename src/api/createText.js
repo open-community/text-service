@@ -1,57 +1,83 @@
-// ============================================================
-// Import modules
+import {
+    getInvalidApiIdList,
+    getResourceId,
+    ResourceType,
+} from '@open-community/service-tools';
 
 import {
-    checkLogin,
-    checkPassword,
-    dbAccountToApi,
-} from './helpers';
+    ApiErrors,
+} from './errors';
 
-import { ApiErrors, buildError } from './errors';
+// ============================================================
+// Import modules
+import { getInvalidAccountIdList } from './helpers';
 
 import { Account } from '../models';
 
 // ============================================================
 // Functions
 
-async function createAccount(req, res) {
-    const { login, password } = req.body;
-
-    const errors = [
-        ...checkLogin(login).map(code => buildError(code, 'login')),
-        ...checkPassword(password).map(code => buildError(code, 'password')),
-    ];
+async function createText(req, res) {
+    const [
+        {
+            text,
+            owners,
+        }
+        errors,
+    ] = getParameters(req);
 
     if (errors.length) {
         res.status(400).json(errors);
-        return;
     }
 
-    // Checking that the login is not already used
-    const nbAccounts = await Account.countDocuments({
-        login,
-        deletionDate: null,
-    });
 
-    if (nbAccounts > 0) {
-        const apiErrors = [
-            buildError(ApiErrors.LOGIN_ALREADY_USED, 'login'),
-        ];
+}
 
-        res.status(400).json(apiErrors);
-        return;
+/**
+ * @param req
+ */
+function getParameters(req) {
+    const {
+        owners,
+        text,
+    } = req.body;
+
+    // Parameter: text
+    const textErrors = checkValidText(text);
+
+    // Parameter: owners
+    
+    const ownersError = getInvalidApiIdList(owners, ResourceType.ACCOUNT);
+
+    return [
+        {
+            text,
+        },
+        [
+            ...textErrors,
+        ],
+    ];
+}
+
+// ============================================================
+// Helpers
+
+/**
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
+function checkValidText(text) {
+    const errors = [];
+
+    // Ensuring that there is no formatting characters in the text
+    if (text.match(/[\n]+/)) {
+        errors.push(ApiErrors.INVALID_CHARACTER);
     }
 
-    const account = await Account.createAccount({
-        login,
-        password,
-    });
-
-    await account.save();
-
-    res.status(200).json(dbAccountToApi(account));
+    return errors;
 }
 
 // ============================================================
 // exports
-export default createAccount;
+export default createText;

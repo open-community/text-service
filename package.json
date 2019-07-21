@@ -1,15 +1,12 @@
 {
   "name": "@open-comunity/text-service",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Starter kit for NodeJS",
   "author": "Abraham TEWA",
   "license": "MIT",
   "homepage": "https://github.com/open-community/text-service",
   "bugs": "https://github.com/open-community/text-service/issues",
   "private": true,
-  "bin": {
-    "hello": "./dist/cli.js"
-  },
   "main": "./dist/index.js",
   "scripts": {
     "build": "gulp build",
@@ -45,6 +42,7 @@
     "@babel/core": "^7.4.3",
     "@babel/preset-env": "^7.4.3",
     "@babel/register": "^7.4.0",
+    "@open-community/service-tools": "0.1.0",
     "@semantic-release/changelog": "^3.0.2",
     "@semantic-release/git": "^7.0.8",
     "babel-plugin-istanbul": "^5.1.3",

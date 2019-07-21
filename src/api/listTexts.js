@@ -1,11 +1,21 @@
+// ============================================================
+// Import packages
+import {
+    api,
+    getInvalidApiIdList,
+    getResourceId,
+    ResourceType,
+} from '@open-community/service-tools';
+
+// ============================================================
+// Import modules
 import {
     checkDates,
-    getInvalidAccountIdList,
-    getInvalidIdentityIdList,
-    getTextIdFromApiId,
-    getInvalidApiIdList,
-    getInvalidTextIdList,
 } from './helpers';
+
+import {
+    ELASTICSEARCH_TEXT_INDEX,
+} from '../constants';
 
 // ============================================================
 // Route
@@ -17,7 +27,16 @@ function listTexts(req, res) {
         return;
     }
 
-    const search = buildSearch(queryParameters);
+    const searchParameters = buildSearch(queryParameters);
+
+    const client = getClient();
+
+    const { hits } = await client.search({
+        index : ELASTICSEARCH_TEXT_INDEX,
+        body : searchParameters,
+    });
+
+    res.json(hits);
 }
 
 function buildSearch({
@@ -134,7 +153,7 @@ function buildSearch({
     // Filter: id
     if (idList.length) {
         query.ids = {
-            values: idList.map(getTextIdFromApiId),
+            values: idList.map((getResourceId)),
         };
     }
 
@@ -205,29 +224,16 @@ function getParameters(req) {
         sort,
     } = req.query;
 
-    const [
-        [
-            creationDateMax,
-            creationDateMin,
-            deletionDateMax,
-            deletionDateMin,
-        ],
-        invalidDates,
-    ] = checkDates([
-        creationDateMaxStr,
-        creationDateMinStr,
-        deletionDateMaxStr,
-        deletionDateMinStr,
-    ]);
+    const dateErrors = [];
 
     // Parameter: author.account.id
     const authorAccountIdList = getListFromReq(req, 'author.account.id');
-    const invalidAuthorAccountIdList = getInvalidAccountIdList(authorAccountIdList)
+    const invalidAuthorAccountIdList = getInvalidApiIdList(authorAccountIdList, ResourceType.ACCOUNT)
         .map(id => ({ parameter: 'author.account.id', error: 'INVALID_ID', value: id }));
 
     // Parameter: author.identity.id
     const authorIdentityIdList = getListFromReq(req, 'author.identity.id');
-    const invalidAuthorIdentityIdList = getInvalidIdentityIdList(authorIdentityIdList)
+    const invalidAuthorIdentityIdList = getInvalidApiIdList(authorIdentityIdList, ResourceType.IDENTITY)
         .map(id => ({ parameter: 'author.identity.id', error: 'INVALID_ID', value: id }));
 
     // Parameter: content
@@ -238,14 +244,30 @@ function getParameters(req) {
     const invalidContextIdList = getInvalidApiIdList(contextIdList)
         .map(id => ({ parameter: 'context.id', error: 'INVALID_ID', value: id }));
 
+    // Parameter: creation-date.max
+    const creationDateMax = toDateFromString(creationDateMaxStr);
+    checkDateError(dateErrors, 'creation-date.max', creationDateMaxStr, creationDateMax);
+
+    // Parameter: creation-date.min
+    const creationDateMin = toDateFromString(creationDateMinStr);
+    checkDateError(dateErrors, 'creation-date.min', creationDateMinStr, creationDateMin);
+
+    // Parameter: deletion-date.max
+    const deletionDateMax = toDateFromString(deletionDateMaxStr);
+    checkDateError(dateErrors, 'deletion-date.max', deletionDateMaxStr, deletionDateMax);
+
+    // Parameter: deletion-date.min
+    const deletionDateMin = toDateFromString(deletionDateMinStr);
+    checkDateError(dateErrors, 'deletion-date.min', deletionDateMinStr, deletionDateMin);
+
     // Parameter: id
     const idList = getListFromReq(req, 'id');
-    const invalidIdList = getInvalidTextIdList(idList)
+    const invalidIdList = getInvalidApiIdList(idList, ResourceType.TEXT)
         .map(id => ({ parameter: 'id', error: 'INVALID_ID', value: id }));
 
     // Parameter: owner.id
     const ownerIdList = getListFromReq(req, 'owner.id');
-    const invalidOwnerId = getInvalidTextIdList(idList)
+    const invalidOwnerId = getInvalidApiIdList(idList, ResourceType.TEXT)
         .map(id => ({ parameter: 'id', error: 'INVALID_ID', value: id }));
 
     // Parameter: pagination.offset
@@ -341,6 +363,7 @@ function getParameters(req) {
             title: titleList,
         },
         [
+            ...dateErrors,
             ...invalidAuthorAccountIdList,
             ...invalidAuthorIdentityIdList,
             ...invalidContextIdList,
@@ -351,6 +374,31 @@ function getParameters(req) {
             ...paginationOffSetError,
             ...paginationSizeError,
         ],
+    ];
+}
+
+function checkDateError(
+    errors,
+    parameter,
+    stringValue,
+    dateValue,
+) {
+    if (!stringValue) {
+        return errors;
+    }
+
+    if (dateValue) {
+        return errors;
+    }
+
+    return [
+        ...errors,
+        api.toQueryParameterError(
+            parameter,
+            'INVALID_DATE',
+            'Invalid date format',
+            stringValue,
+        ),
     ];
 }
 
