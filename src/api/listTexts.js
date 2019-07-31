@@ -1,11 +1,15 @@
+/* eslint-disable arrow-parens */
+
+// ============================================================
+// Import packages
+import { http, ResourceType } from '@open-community/service-tools';
+
+// ============================================================
+// Import modules
 import {
-    checkDates,
-    getInvalidAccountIdList,
-    getInvalidIdentityIdList,
     getTextIdFromApiId,
-    getInvalidApiIdList,
-    getInvalidTextIdList,
 } from './helpers';
+
 
 // ============================================================
 // Route
@@ -18,6 +22,8 @@ function listTexts(req, res) {
     }
 
     const search = buildSearch(queryParameters);
+
+    req.json(search);
 }
 
 function buildSearch({
@@ -196,88 +202,81 @@ function buildSearch({
  */
 function getParameters(req) {
     const {
-        'creation-date.min': creationDateMinStr,
-        'creation-date.max': creationDateMaxStr,
-        'deletion-date.min': deletionDateMinStr,
-        'deletion-date.max': deletionDateMaxStr,
         'pagination.offset': paginationOffset,
         'pagination.size': paginationSize,
         sort,
     } = req.query;
 
-    const [
-        [
-            creationDateMax,
-            creationDateMin,
-            deletionDateMax,
-            deletionDateMin,
-        ],
-        invalidDates,
-    ] = checkDates([
-        creationDateMaxStr,
-        creationDateMinStr,
-        deletionDateMaxStr,
-        deletionDateMinStr,
-    ]);
+    // Parameter: creation-date.max
+    const creationDateMax = http.request.getOneDate(req, 'creation-date.max');
+    const creationDateMin = http.request.getOneDate(req, 'creation-date.min');
+    const deletionDateMax = http.request.getOneDate(req, 'deletion-date.max');
+    const deletionDateMin = http.request.getOneDate(req, 'deletion-date.min');
 
     // Parameter: author.account.id
-    const authorAccountIdList = getListFromReq(req, 'author.account.id');
-    const invalidAuthorAccountIdList = getInvalidAccountIdList(authorAccountIdList)
-        .map(id => ({ parameter: 'author.account.id', error: 'INVALID_ID', value: id }));
+    const authorAccountInfo = http.request.getListApiIdFromReq(req, 'author.account.id', ResourceType.ACCOUNT);
 
     // Parameter: author.identity.id
-    const authorIdentityIdList = getListFromReq(req, 'author.identity.id');
-    const invalidAuthorIdentityIdList = getInvalidIdentityIdList(authorIdentityIdList)
-        .map(id => ({ parameter: 'author.identity.id', error: 'INVALID_ID', value: id }));
+    const authorIdentityInfo = http.request.getListApiIdFromReq(req, 'author.identity.id', ResourceType.IDENTITY);
 
     // Parameter: content
-    const contentList = getListFromReq(req, 'content');
+    const contentList = http.request.getListFromReq(req, 'content');
 
     // Parameter: context.id
-    const contextIdList = getListFromReq(req, 'context.id');
-    const invalidContextIdList = getInvalidApiIdList(contextIdList)
-        .map(id => ({ parameter: 'context.id', error: 'INVALID_ID', value: id }));
+    const contextInfo = http.request.getListApiIdFromReq(req, 'context.id');
 
     // Parameter: id
-    const idList = getListFromReq(req, 'id');
-    const invalidIdList = getInvalidTextIdList(idList)
-        .map(id => ({ parameter: 'id', error: 'INVALID_ID', value: id }));
+    const idInfo = http.request.getListApiIdFromReq(req, 'id', ResourceType.TEXT);
 
     // Parameter: owner.id
-    const ownerIdList = getListFromReq(req, 'owner.id');
-    const invalidOwnerId = getInvalidTextIdList(idList)
-        .map(id => ({ parameter: 'id', error: 'INVALID_ID', value: id }));
+    const ownerInfo = http.request.getListApiIdFromReq(req, 'owner.id', ResourceType.ACCOUNT);
 
     // Parameter: pagination.offset
     const paginationOffsetNumber = Number(paginationOffset);
     const paginationOffSetError = [];
     if (!Number.isInteger(paginationOffsetNumber)) {
-        paginationOffSetError.push({
-            parameter: 'pagination.offset', error: 'INVALID_INTEGER', value: paginationOffset,
-        });
+        paginationOffSetError.push(
+            new http.request.errors.InvalidParameterHttpError({
+                parameter: 'pagination.offset',
+                value: paginationOffset,
+                message: 'Not an integer',
+            }),
+        );
     }
     else if (paginationOffsetNumber < 0) {
-        paginationOffSetError.push({
-            parameter: 'pagination.offset', error: 'NEGATIVE_INTEGER', value: paginationOffsetNumber,
-        });
+        paginationOffSetError.push(
+            new http.request.errors.InvalidParameterHttpError({
+                parameter: 'pagination.offset',
+                value: paginationOffset,
+                message: 'Not a positive or 0 integer',
+            }),
+        );
     }
 
     // Parameter: pagination.size
     const paginationSizeNumber = Number(paginationSize);
     const paginationSizeError = [];
     if (!Number.isInteger(paginationSizeNumber)) {
-        paginationSizeError.push({
-            parameter: 'pagination.size', error: 'INVALID_INTEGER', value: paginationSize,
-        });
+        paginationOffSetError.push(
+            new http.request.errors.InvalidParameterError({
+                parameter: 'pagination.size',
+                value: paginationOffset,
+                message: 'Not an integer',
+            }),
+        );
     }
     else if (paginationSizeNumber <= 0) {
-        paginationSizeError.push({
-            parameter: 'pagination.size', error: 'NEGATIVE_INTEGER', value: paginationSizeNumber,
-        });
+        paginationOffSetError.push(
+            new http.request.errors.InvalidParameterError({
+                parameter: 'pagination.size',
+                value: paginationOffset,
+                message: 'Not a positive or 0 integer',
+            }),
+        );
     }
 
     // Parameter: search
-    const searchList = getListFromReq(req, 'search');
+    const searchList = http.request.getListFromReq(req, 'search');
 
     // Parameter: sort
     const reSort = /^([+-])([a-z][a-z-]+)/;
@@ -296,22 +295,23 @@ function getParameters(req) {
         const exec = reSort.exec(sortField);
 
         if (!exec) {
-            acc.errors.push({
+            const error = new http.request.errors.InvalidParameterError({
                 parameter: 'sort',
-                error: 'INVALID_SORT',
                 value: sortField,
             });
+            acc.errors.push(error);
             return acc;
         }
 
         const [, field] = exec;
 
         if (!sortFields.includes(field)) {
-            acc.errors.push({
+            const error = new http.request.errors.InvalidParameterError({
                 parameter: 'sort',
-                error: 'UNKNOWN_FIELD',
                 value: field,
+                message: 'unknown field',
             });
+            acc.errors.push(error);
             return acc;
         }
 
@@ -320,20 +320,20 @@ function getParameters(req) {
     }, { sort: [], errors: [] });
 
     // Parameter: title
-    const titleList = getListFromReq(req, 'title');
+    const titleList = http.request.getListFromReq(req, 'title');
 
     return [
         {
-            'author.account.id': authorAccountIdList,
-            'author.identity.id': authorAccountIdList.authorIdentityIdList,
-            'context.id': contextIdList,
+            'author.account.id': authorAccountInfo.value,
+            'author.identity.id': authorIdentityInfo.value,
+            'context.id': contextInfo.value,
             content: contentList,
-            'creation-date.min': creationDateMin,
-            'creation-date.max': creationDateMax,
-            'deletion-date.min': deletionDateMin,
-            'deletion-date.max': deletionDateMax,
-            id: idList,
-            'owner.id': ownerIdList,
+            'creation-date.min': creationDateMin.value,
+            'creation-date.max': creationDateMax.value,
+            'deletion-date.min': deletionDateMin.value,
+            'deletion-date.max': deletionDateMax.value,
+            id: idInfo.value,
+            'owner.id': ownerInfo.value,
             'pagination.offset': paginationOffSetError.length ? paginationOffsetNumber : undefined,
             'pagination.size': paginationSizeError.length ? paginationSizeNumber : undefined,
             search: searchList,
@@ -341,23 +341,20 @@ function getParameters(req) {
             title: titleList,
         },
         [
-            ...invalidAuthorAccountIdList,
-            ...invalidAuthorIdentityIdList,
-            ...invalidContextIdList,
-            ...invalidIdList,
-            ...invalidOwnerId,
-            ...invalidDates,
+            ...authorAccountInfo.errors,
+            ...authorIdentityInfo.errors,
+            ...contextInfo.errors,
+            ...idInfo.errors,
+            ...ownerInfo.errors,
+            ...creationDateMax.errors,
+            ...creationDateMin.errors,
+            ...deletionDateMax.errors,
+            ...deletionDateMin.errors,
             ...sortErrors,
             ...paginationOffSetError,
             ...paginationSizeError,
         ],
     ];
-}
-
-function getListFromReq(req, parameter) {
-    return typeof req.query[parameter] === 'string'
-        ? [req.query[parameter]]
-        : req.query[parameter] || [];
 }
 
 // ============================================================

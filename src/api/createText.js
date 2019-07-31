@@ -1,57 +1,128 @@
 // ============================================================
+// Import packages
+import {
+    api,
+    ResourceType,
+} from '@open-community/service-tools';
+
+import _ from 'lodash';
+
+// ============================================================
 // Import modules
 
-import {
-    checkLogin,
-    checkPassword,
-    dbAccountToApi,
-} from './helpers';
-
-import { ApiErrors, buildError } from './errors';
-
-import { Account } from '../models';
+import { Text } from '../models';
 
 // ============================================================
 // Functions
 
-async function createAccount(req, res) {
-    const { login, password } = req.body;
-
-    const errors = [
-        ...checkLogin(login).map(code => buildError(code, 'login')),
-        ...checkPassword(password).map(code => buildError(code, 'password')),
-    ];
+async function createText(req, res) {
+    const [parameters, errors] = getParameters(req);
 
     if (errors.length) {
         res.status(400).json(errors);
         return;
     }
 
-    // Checking that the login is not already used
-    const nbAccounts = await Account.countDocuments({
-        login,
-        deletionDate: null,
-    });
+    const text = await Text.createText(parameters);
 
-    if (nbAccounts > 0) {
-        const apiErrors = [
-            buildError(ApiErrors.LOGIN_ALREADY_USED, 'login'),
-        ];
+    req.json(text);
+}
 
-        res.status(400).json(apiErrors);
-        return;
-    }
+/**
+ *
+ * @param {Request} req
+ * @returns {[Object, ApiErrors[]]}
+ */
+function getParameters(req) {
+    // ==============================
+    // property: owners
+    const owners = (req.body.authors || []).reduce(({ value, errors }, owner, index) => {
+        if (!api.isValidApiId(owner, ResourceType.ACCOUNT)) {
+            const error = new api.errors.InvalidApiIdError({
+                apiId: owner,
+                message: `owners[${index}]: Not an account ID`,
+            });
+            errors.push(error);
+        }
+        else {
+            value.push(owner);
+        }
 
-    const account = await Account.createAccount({
-        login,
-        password,
-    });
+        return { value, errors };
+    }, { value: [], errors: [] });
 
-    await account.save();
+    // ==============================
+    // property: authors
+    const listAuthors = (req.body.authors || []).reduce(({ value, errors }, author, index) => {
+        let valid = true;
 
-    res.status(200).json(dbAccountToApi(account));
+        if (!api.isValidApiId(author.account, ResourceType.ACCOUNT)) {
+            valid = false;
+            const error = new api.errors.InvalidApiIdError({
+                apiId: author.account,
+                message: `authors[${index}].account: Not an account ID`,
+            });
+            errors.push(error);
+        }
+
+        if (!api.isValidApiId(author.identity, ResourceType.IDENTITY)) {
+            valid = false;
+
+            const error = new api.errors.InvalidApiIdError({
+                apiId: author.account,
+                message: `authors[${index}].identity: Not an identity ID`,
+            });
+            errors.push(error);
+        }
+
+        if (valid) {
+            value.push(author);
+        }
+
+        return { value, errors };
+    }, { value: [], errors: [] });
+
+    const authors = {
+        value: _.uniqWith(
+            listAuthors.value,
+            (a, b) => a.account === b.account && a.identity === b.identity,
+        ),
+        errors: listAuthors.errors,
+    };
+
+    // ==============================
+    // property: context
+    const contexts = (req.body.contexts || []).reduce(({ value, errors }, context, index) => {
+        if (!api.isValidApiId(context)) {
+            const error = new api.errors.InvalidApiIdError({
+                apiId: context,
+                message: `contexts[${index}]: Not a valid API ID`,
+            });
+            errors.push(error);
+        }
+        else {
+            value.push(context);
+        }
+
+        return { value, errors };
+    }, { value: [], errors: [] });
+
+    return [
+        {
+            text: req.body.text,
+            formatting: req.body.formatting,
+            owners: owners.value,
+            authors: authors.value,
+            contexts: contexts.value,
+        },
+        [
+            ...authors.errors,
+            ...contexts.errors,
+            ...owners.errors,
+        ],
+    ];
 }
 
 // ============================================================
 // exports
-export default createAccount;
+export default createText;
