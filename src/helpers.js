@@ -3,7 +3,8 @@
 import crypto from 'crypto';
 import util from 'util';
 import base64url from 'base64url';
-import { Client } from '@elastic/elasticsearch';
+import { Client } from 'elasticsearch';
+import _ from 'lodash';
 
 import cryptoRandomString from 'crypto-random-string';
 

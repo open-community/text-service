@@ -3,7 +3,7 @@
 import createText from './createText';
 import deleteText from './deleteText';
 import getText from './getText';
-import listTexts from './listTexts';
+import findTexts from './findTexts';
 
 // ============================================================
 // Functions
@@ -11,7 +11,7 @@ function routes(app) {
     let route;
 
     route = '/texts';
-    app.get(route, listTexts);
+    app.get(route, findTexts);
 
     route = '/text';
     app.put(route, createText);
@@ -19,7 +19,6 @@ function routes(app) {
     route = '/text/:id';
     app.get(route, getText);
     app.delete(route, deleteText);
-    app.post(route, updateText);
 }
 
 // ============================================================

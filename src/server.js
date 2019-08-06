@@ -1,18 +1,18 @@
 // ============================================================
 // Import packages
 import express from 'express';
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
 // ============================================================
 // Import modules
 import declareRoutes from './api';
+import { client } from './models';
 
 // ============================================================
 // Functions
 
-function initialize({
+async function initialize({
     port,
     host,
     env,
@@ -24,10 +24,10 @@ function initialize({
 
     declareRoutes(app);
 
-    mongoose.connect(
-        process.env.DB_CONNECTION,
-        { useNewUrlParser: true },
-    );
+    await client.initialize({
+        host: 'localhost:9200',
+        log: 'trace',
+    });
 
     app.listen(
         port,

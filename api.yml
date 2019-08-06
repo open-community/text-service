@@ -23,10 +23,10 @@ tags:
     description: "Operation on accounts"
 
 paths:
-  /texts:
+  /text:
     get:
       summary: "Return a list of texts"
-      operationId: listTexts
+      operationId: findTexts
       tags:
         - text
       parameters:
@@ -107,6 +107,15 @@ paths:
               type: string
               format: base64-url
 
+        - name: owner.id
+          description: "ID of all text owners"
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: base64-url
+
         - name: pagination.offset
           description: "If defined, the search will skip the first \"pagination.offset\" result and return the next ones."
           in: query
@@ -150,15 +159,6 @@ paths:
                 - -title
                 - _score
 
-        - name: owner.id
-          description: "ID of all text owners"
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-              format: base64-url
-
         - name: title
           in: query
           description: "If defined, will return only text containing the given search in the title"
@@ -178,7 +178,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/Text"
 
-  /text:
     put:
       summary: "Create a new text"
       operationId: createText
@@ -654,6 +653,10 @@ components:
         text:
           type: string
           description: "Content of the text"
+          
+        title:
+          type: string
+          description: "Title of the text"
 
         formatting:
           type: object

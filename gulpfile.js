@@ -15,6 +15,7 @@ const DIST_FOLDER_PATH = './dist';
 const DOC_FOLDER_PATH = './doc';
 const REPORT_FOLDER_PATH = './reports';
 const UNIT_TEST_FOLDER_PATH = path.resolve(REPORT_FOLDER_PATH, 'tests', 'unit');
+const INTEGRATION_TEST_FOLDER_PATH = path.resolve(REPORT_FOLDER_PATH, 'tests', 'integration');
 
 // ============================================================
 // Simple tasks
@@ -39,6 +40,10 @@ gulp.task('clean:reports', () => del([
 
 gulp.task('clean:report:tests:unit', () => del([
     UNIT_TEST_FOLDER_PATH,
+]));
+
+gulp.task('clean:report:tests:integration', () => del([
+    INTEGRATION_TEST_FOLDER_PATH,
 ]));
 
 // ==============================

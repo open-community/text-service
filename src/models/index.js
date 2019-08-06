@@ -1,18 +1,11 @@
 // ============================================================
-// Import packages
-import mongoose from 'mongoose';
-
-// ============================================================
 // Import modules
-import AccountSchema from './AccountSchema';
-
-// ============================================================
-// Module's constants and variables
-
-const Account = mongoose.model('Account', AccountSchema);
+import * as client from './client';
+import * as Text from './Text';
 
 // ============================================================
 // Exports
 export {
-    Account,
+    client,
+    Text,
 };

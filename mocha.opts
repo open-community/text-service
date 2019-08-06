@@ -1,4 +1,4 @@
---file mocha.setup.js
+--file ./tests/integration/setup/mocha.setup.js
 --require source-map-support/register
 --require @babel/register
 --recursive

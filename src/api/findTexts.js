@@ -10,10 +10,9 @@ import {
     getTextIdFromApiId,
 } from './helpers';
 
-
 // ============================================================
 // Route
-function listTexts(req, res) {
+function findTexts(req, res) {
     const [queryParameters, errors] = getParameters(req);
 
     if (errors.length) {
@@ -359,4 +358,4 @@ function getParameters(req) {
 
 // ============================================================
 // Exports
-export default listTexts;
+export default findTexts;
