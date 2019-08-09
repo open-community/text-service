@@ -1,6 +1,9 @@
 // ============================================================
 // Import packages
+import dotenv from 'dotenv';
 import _ from 'lodash';
+
+dotenv.config();
 
 // ============================================================
 //  Module's constants and variables
@@ -19,7 +22,7 @@ function setupConfig() {
 
     configuration = {
         services: {
-            text: process.env.TEXT_SERVICE,
+            text: process.env.TEXT_SERVICE || 'http://localhost:3000',
         },
     };
 }
@@ -32,7 +35,10 @@ function setupConfig() {
  */
 function getConfig(path) {
     if (path) {
-        return _.cloneDeep(_.at(configuration, path));
+        console.log('configuration', configuration);
+        console.log('path:', path);
+        console.log('result', _.at(configuration, path));
+        return _.cloneDeep(_.at(configuration, path)[0]);
     }
 
     return _.cloneDeep(configuration);
@@ -40,7 +46,5 @@ function getConfig(path) {
 
 // ============================================================
 //
-export {
-    getConfig,
-    setupConfig,
-};
+exports.getConfig = getConfig;
+exports.setupConfig = setupConfig;

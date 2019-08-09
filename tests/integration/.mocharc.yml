@@ -1,9 +1,0 @@
-file:
-    - ./tests/integration/mocha.setup.js
-recursive: true
-require: "@babel/register"
-reporter: mocha-multi-reporters
-reporter-option:
-    - configFile=mocha.reporters.json
-use-strict: true
-ui: bdd

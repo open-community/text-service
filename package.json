@@ -7,9 +7,6 @@
   "homepage": "https://github.com/open-community/text-service",
   "bugs": "https://github.com/open-community/text-service/issues",
   "private": true,
-  "bin": {
-    "hello": "./dist/cli.js"
-  },
   "main": "./dist/index.js",
   "scripts": {
     "build": "gulp build",
@@ -24,8 +21,8 @@
     "start:brk": "node --inspect-brk --require @babel/register src/cli.js",
     "test": "gulp clean:report:tests:unit && mocha src/**/*.spec.js --opts mocha.opts",
     "test-cov": "gulp clean:report:tests:unit && cross-env NODE_ENV=test nyc mocha src/**/*.spec.js --opts mocha.opts",
-    "test:integration": "gulp clean:report:tests:integration && mocha tests/integration/specs/**/*.js --config .mocharc-integration.yml",
-    "test:integration-cov": "gulp clean:report:tests:integration && mocha tests/integration/specs/**/*.js --config .mocharc-integration.yml",
+    "test:integration": "mocha tests/integration/specs/**/*.js --opts tests/integration/setup/mocha.opts",
+    "test:integration-cov": "gulp clean:report:tests:integration && mocha tests/integration/specs/**/*.js --opts tests/integration/setup/mocha.opts",
     "update:reference": "jsdoc2md -c jsdoc.config.json --files src > docs/REFERENCE.md"
   },
   "repository": {
@@ -46,11 +43,15 @@
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-private-methods": "^7.4.4",
     "@babel/preset-env": "^7.5.5",
     "@babel/register": "^7.5.5",
+    "@open-community/faker": "git@github.com:open-community/faker",
     "@open-community/internal-client": "git@github.com:open-community/internal-client-js.git#develop",
     "@semantic-release/changelog": "^3.0.4",
     "@semantic-release/git": "^7.0.16",
+    "babel-eslint": "^10.0.2",
     "babel-plugin-istanbul": "^5.2.0",
     "chai": "^4.2.0",
     "chai-jest-snapshot": "^2.0.0",

@@ -3,8 +3,9 @@
 // ============================================================
 // Import packages
 import { assert } from 'chai';
-import Client from '@open-community/internal-client';
-import tools from '@open-community/service-tools';
+import faker from '@open-community/faker';
+import Client, { Services } from '@open-community/internal-client';
+import * as tools from '@open-community/service-tools';
 
 import { isTextEqual } from '../helpers';
 import { getConfig } from '../setup';
@@ -12,22 +13,27 @@ import { getConfig } from '../setup';
 // ============================================================
 // Tests
 describe('Simple situation', () => {
-    const client = new Client({
-        text: getConfig('services.text'),
+    let client;
+    let resources;
+
+    before(() => {
+        client = new Client({
+            [Services.TEXT]: getConfig('services.text'),
+        });
+
+        resources = {
+            accounts: {
+                A: 'A',
+            },
+
+            identities: {
+                A: 'A',
+            },
+        };
     });
 
-    const resources = {
-        accounts: {
-            A: 'A',
-        },
-
-        identities: {
-            A: 'A',
-        },
-    };
-
     it('create a text', async () => {
-        const textToCreate = tools.faker.text.generate({
+        const textToCreate = faker.text.generate({
             authors: [{ account: resources.accounts.A, identity: resources.identities.A }],
             includeId: false,
             owners: [resources.accounts.A],
