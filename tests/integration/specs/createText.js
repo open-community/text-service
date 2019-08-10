@@ -40,27 +40,25 @@ describe('Simple situation', () => {
         });
 
         // Create text
-        const createdText = await client.text.create(textToCreate);
-        const { id } = createdText;
+        const { id } = await client.text.create(textToCreate);
 
-        assert.isTrue(tools.api.isValidApiId(id));
+        assert.isTrue(
+            tools.api.isValidApiId(id),
+            'receive a valid API ID',
+        );
 
         const idParse = tools.api.parseApiId(id);
         assert.equal(
             idParse.type,
             tools.ResourceType.TEXT,
-            'ApiId match a text resource',
-        );
-
-        assert.isTrue(
-            isTextEqual(createdText, { id, ...textToCreate }),
-            'Both texts must equal',
+            'apiId match a text resource',
         );
 
         // Get text
-        const getText = await client.text.get({ id });
-        assert.isTrue(
-            isTextEqual(getText, createdText),
+        const getText = await client.text.get(id);
+        assert.deepEqual(
+            getText,
+            { id, ...textToCreate },
             'Created text is equal to fetched text',
         );
 
@@ -77,8 +75,9 @@ describe('Simple situation', () => {
             'Only one text found',
         );
 
-        assert.isTrue(
-            isTextEqual(findedText, createdText[0]),
+        assert.deepEqual(
+            findedText[0],
+            { id, ...textToCreate },
             'Created text is equal to finded text',
         );
 

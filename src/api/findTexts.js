@@ -10,9 +10,11 @@ import {
     getTextIdFromApiId,
 } from './helpers';
 
+import { Text } from '../models';
+
 // ============================================================
 // Route
-function findTexts(req, res) {
+async function findTexts(req, res) {
     const [queryParameters, errors] = getParameters(req);
 
     if (errors.length) {
@@ -22,7 +24,9 @@ function findTexts(req, res) {
 
     const search = buildSearch(queryParameters);
 
-    req.json(search);
+    const texts = await Text.findText(search);
+
+    req.json(texts);
 }
 
 function buildSearch({

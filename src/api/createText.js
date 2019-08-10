@@ -23,9 +23,11 @@ async function createText(req, res) {
         return;
     }
 
-    const text = await Text.createText(parameters);
+    const id = await Text.createText(parameters);
 
-    req.json(text);
+    res.json({
+        id: api.toApiId(ResourceType.TEXT, id),
+    });
 }
 
 /**
@@ -36,7 +38,7 @@ async function createText(req, res) {
 function getParameters(req) {
     // ==============================
     // property: owners
-    const owners = (req.body.authors || []).reduce(({ value, errors }, owner, index) => {
+    const owners = (req.body.owners || []).reduce(({ value, errors }, owner, index) => {
         if (!api.isValidApiId(owner, ResourceType.ACCOUNT)) {
             const error = new api.errors.InvalidApiIdError({
                 apiId: owner,
@@ -110,6 +112,7 @@ function getParameters(req) {
     return [
         {
             text: req.body.text,
+            title: req.body.title,
             formatting: req.body.formatting,
             owners: owners.value,
             authors: authors.value,

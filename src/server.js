@@ -20,6 +20,7 @@ async function initialize({
     dotenv.config(env);
     const app = express();
 
+    app.use(express.json()); // for parsing application/json
     app.use(bodyParser.json());
 
     declareRoutes(app);

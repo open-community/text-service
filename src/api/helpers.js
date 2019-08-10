@@ -32,7 +32,7 @@ function dbTextToApi({
         authors,
         contexts,
         formatting,
-        id: api.toApiId(id, ResourceType.TEXT),
+        id: api.toApiId(ResourceType.TEXT, id),
         owners,
         text,
     };

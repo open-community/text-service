@@ -22,8 +22,12 @@ async function initialize() {
     });
 }
 
+function getClient() {
+    return client;
+}
 
 
 export {
+    getClient,
     initialize,
 };

@@ -21,7 +21,7 @@ async function getText(req, res) {
 
     const id = api.getResourceId(parameters.id);
 
-    const dbText = await Text.findOne({ id });
+    const dbText = await Text.get(id);
 
     if (!dbText) {
         res.status(404).send();
