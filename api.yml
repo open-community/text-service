@@ -129,6 +129,13 @@ paths:
           schema:
             type: number
 
+        - name: store.refreshIndex
+          description: "If true, then store will refresh search indexes, making the created text immediately available for search. Set to false to increase speed"
+          in: query
+          schema:
+            default: true
+            type: boolean
+
         - name: search
           description: "If defined, will return only text containing the given search in the title or content"
           in: query

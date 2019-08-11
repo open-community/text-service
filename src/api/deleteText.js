@@ -18,7 +18,7 @@ async function deleteText(req, res) {
 
     const id = api.getResourceId(parameters.id);
 
-    await Text.deleteOne({ id });
+    await Text.delete(id);
 
     res.status(200).send();
 }

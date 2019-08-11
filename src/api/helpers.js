@@ -27,6 +27,7 @@ function dbTextToApi({
     id,
     owners,
     text,
+    title,
 }) {
     return {
         authors,
@@ -35,6 +36,7 @@ function dbTextToApi({
         id: api.toApiId(ResourceType.TEXT, id),
         owners,
         text,
+        title,
     };
 }
 

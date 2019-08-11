@@ -16,14 +16,20 @@ import { Text } from '../models';
 // Functions
 
 async function createText(req, res) {
-    const [parameters, errors] = getParameters(req);
+    const [
+        {
+            store,
+            ...parameters
+        },
+        errors,
+    ] = getParameters(req);
 
     if (errors.length) {
         res.status(400).json(errors);
         return;
     }
 
-    const id = await Text.createText(parameters);
+    const id = await Text.create(parameters, store);
 
     res.json({
         id: api.toApiId(ResourceType.TEXT, id),
@@ -109,6 +115,10 @@ function getParameters(req) {
         return { value, errors };
     }, { value: [], errors: [] });
 
+    const refreshIndex = typeof req.body.store === 'undefined' || typeof req.body.store.refreshIndex === 'undefined'
+        ? true
+        : Boolean(req.body.store.refreshIndex);
+
     return [
         {
             text: req.body.text,
@@ -117,6 +127,9 @@ function getParameters(req) {
             owners: owners.value,
             authors: authors.value,
             contexts: contexts.value,
+            store: {
+                refreshIndex,
+            },
         },
         [
             ...authors.errors,

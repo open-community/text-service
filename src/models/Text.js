@@ -9,6 +9,18 @@ const DOCUMENT_TYPE = '@open-community/type/text';
 
 // ============================================================
 // Functions
+
+async function deleteText(id, storeParameters = {
+    refreshIndex: true,
+}) {
+    await getClient().delete({
+        id,
+        type: DOCUMENT_TYPE,
+        index: ELASTICSEARCH_INDEX,
+        refresh: storeParameters.refreshIndex,
+    });
+}
+
 /**
  * Elasticsearch search parameters
  * @param {Object} params
@@ -46,14 +58,18 @@ async function get(id) {
 /**
  * Create a new text.
  * @param {Text} text
+ * @param {Object} storeParameters
  * @returns {Id} ID of the created text
  * @public
  */
-async function createText(text) {
+async function createText(text, store = {
+    refreshIndex: true,
+}) {
     const { _id } = await getClient().index({
         body: text,
         index: ELASTICSEARCH_INDEX,
         type: DOCUMENT_TYPE,
+        refresh: store.refreshIndex,
     });
 
     return _id;
@@ -62,7 +78,8 @@ async function createText(text) {
 // ============================================================
 // Exports
 export {
-    createText,
-    findText,
+    createText as create,
+    deleteText as delete,
+    findText as find,
     get,
 };

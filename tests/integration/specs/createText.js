@@ -7,7 +7,6 @@ import faker from '@open-community/faker';
 import Client, { Services } from '@open-community/internal-client';
 import * as tools from '@open-community/service-tools';
 
-import { isTextEqual } from '../helpers';
 import { getConfig } from '../setup';
 
 // ============================================================
@@ -69,6 +68,7 @@ describe('Simple situation', () => {
             findedText,
             'Find must return an array',
         );
+
         assert.equal(
             findedText.length,
             1,
@@ -82,9 +82,9 @@ describe('Simple situation', () => {
         );
 
         // Delete text
-        await client.text.delete({ id });
+        await client.text.delete(id);
 
-        const getDeletedText = await client.text.get({ id });
+        const getDeletedText = await client.text.get(id);
         assert.isUndefined(getDeletedText);
     });
 });
