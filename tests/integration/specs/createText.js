@@ -4,21 +4,24 @@
 // Import packages
 import { assert } from 'chai';
 import faker from '@open-community/faker';
-import Client, { Services } from '@open-community/internal-client';
+import Client, { errors, Services } from '@open-community/internal-client';
 import * as tools from '@open-community/service-tools';
 
-import { getConfig } from '../setup';
+import { getConfig, ResourceManager } from '../setup';
 
 // ============================================================
 // Tests
 describe('Simple situation', () => {
     let client;
     let resources;
+    let resourceManager;
 
     before(() => {
         client = new Client({
             [Services.TEXT]: getConfig('services.text'),
         });
+
+        resourceManager = new ResourceManager(client);
 
         resources = {
             accounts: {
@@ -31,6 +34,10 @@ describe('Simple situation', () => {
         };
     });
 
+    after(async () => {
+        await resourceManager.clean();
+    });
+
     it('create a text', async () => {
         const textToCreate = faker.text.generate({
             authors: [{ account: resources.accounts.A, identity: resources.identities.A }],
@@ -40,6 +47,7 @@ describe('Simple situation', () => {
 
         // Create text
         const { id } = await client.text.create(textToCreate);
+        resourceManager.add(id);
 
         assert.isTrue(
             tools.api.isValidApiId(id),
@@ -86,5 +94,32 @@ describe('Simple situation', () => {
 
         const getDeletedText = await client.text.get(id);
         assert.isUndefined(getDeletedText);
+    });
+
+    describe('throw an error if invalid data', () => {
+        const assertCreateError = async (text, message) => {
+            let error;
+
+            try {
+                await client.text.create(text);
+            }
+            catch (err) {
+                error = err;
+            }
+
+            assert.instanceOf(error, errors.http.ClientError, message);
+        };
+
+        it('throw an error if invalid account', async () => {
+            const textToCreate = faker.text.generate({
+                authors: [{ account: resources.accounts.A, identity: resources.identities.A }],
+                includeId: false,
+                owners: [resources.accounts.A],
+            });
+
+            textToCreate.authors[0].account = `x${textToCreate.authors[0].account}`;
+
+            await assertCreateError(textToCreate);
+        });
     });
 });

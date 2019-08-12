@@ -8,9 +8,14 @@ dotenv.config();
 // ============================================================
 //  Module's constants and variables
 let configuration;
+const resources = new Set();
 
 // ============================================================
 // Functions
+function createdResource(id) {
+    resources.add(id);
+}
+
 /**
  * Setup the configuration
  * @public
@@ -35,9 +40,6 @@ function setupConfig() {
  */
 function getConfig(path) {
     if (path) {
-        console.log('configuration', configuration);
-        console.log('path:', path);
-        console.log('result', _.at(configuration, path));
         return _.cloneDeep(_.at(configuration, path)[0]);
     }
 
@@ -48,3 +50,4 @@ function getConfig(path) {
 //
 exports.getConfig = getConfig;
 exports.setupConfig = setupConfig;
+exports.createdResource = createdResource;

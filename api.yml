@@ -648,6 +648,14 @@ paths:
         404:
           description: Text not found
 
+    /store/refreshIndexes:
+        post:
+            summary: "Trigger the refresh of the indexes"
+            operationId: refreshIndexes
+            responses:
+                200:
+                    description: Indexes refreshed
+
 components:
   schemas:
     Text:

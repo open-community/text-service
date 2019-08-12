@@ -10,15 +10,44 @@ const DOCUMENT_TYPE = '@open-community/type/text';
 // ============================================================
 // Functions
 
+/**
+ * Create a new text.
+ * @param {Text} text
+ * @param {Object} storeParameters
+ * @returns {Id} ID of the created text
+ * @public
+ */
+async function createText(text, store = {
+    refreshIndex: true,
+}) {
+    const { _id } = await getClient().index({
+        body: text,
+        index: ELASTICSEARCH_INDEX,
+        type: DOCUMENT_TYPE,
+        refresh: store.refreshIndex,
+    });
+
+    return _id;
+}
+
 async function deleteText(id, storeParameters = {
     refreshIndex: true,
 }) {
-    await getClient().delete({
-        id,
-        type: DOCUMENT_TYPE,
-        index: ELASTICSEARCH_INDEX,
-        refresh: storeParameters.refreshIndex,
-    });
+    try {
+        await getClient().delete({
+            id,
+            type: DOCUMENT_TYPE,
+            index: ELASTICSEARCH_INDEX,
+            refresh: storeParameters.refreshIndex,
+        });
+    }
+    catch (err) {
+        if (err.status === 404) {
+            return;
+        }
+
+        throw err;
+    }
 }
 
 /**
@@ -63,26 +92,6 @@ async function get(id) {
         }
         throw err;
     }
-}
-
-/**
- * Create a new text.
- * @param {Text} text
- * @param {Object} storeParameters
- * @returns {Id} ID of the created text
- * @public
- */
-async function createText(text, store = {
-    refreshIndex: true,
-}) {
-    const { _id } = await getClient().index({
-        body: text,
-        index: ELASTICSEARCH_INDEX,
-        type: DOCUMENT_TYPE,
-        refresh: store.refreshIndex,
-    });
-
-    return _id;
 }
 
 // ============================================================
