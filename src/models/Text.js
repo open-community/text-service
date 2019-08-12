@@ -38,21 +38,31 @@ async function findText(params) {
 
 
 /**
- *
+ * Return a text.
+ * If not text found, return undefined.
  * @param {ID} id
+ * @returns {Text}
  * @public
  */
 async function get(id) {
-    const { _source: text } = await getClient().get({
-        id,
-        type: DOCUMENT_TYPE,
-        index: ELASTICSEARCH_INDEX,
-    });
+    try {
+        const { _source: text } = await getClient().get({
+            id,
+            type: DOCUMENT_TYPE,
+            index: ELASTICSEARCH_INDEX,
+        });
 
-    return {
-        id,
-        ...text,
-    };
+        return {
+            id,
+            ...text,
+        };
+    }
+    catch (err) {
+        if (err.status === 404) {
+            return undefined;
+        }
+        throw err;
+    }
 }
 
 /**
