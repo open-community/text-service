@@ -70,6 +70,10 @@ function buildSearch({
 
     cleanQuery(searchParams);
 
+    if (Object.keys(searchParams.query).length === 0) {
+        query.match_all = {};
+    }
+
     return searchParams;
 }
 

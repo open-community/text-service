@@ -4,12 +4,11 @@ import { Text } from '../models';
 
 // ============================================================
 // Functions
-async function refreshIndexes(req, res) {
-    await Text.refreshIndexes();
-
+async function refreshIndex(req, res) {
+    await Text.refreshIndex();
     res.status(200).send();
 }
 
 // ============================================================
 // Exports
-export default refreshIndexes;
+export default refreshIndex;

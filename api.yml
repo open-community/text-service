@@ -594,6 +594,9 @@ paths:
     put:
       summary: Declare one or several new owners of an text.
       operationId: addOwners
+      tags:
+        - account
+        - owners
       parameters:
         - name: id
           in: path
@@ -620,10 +623,12 @@ paths:
         404:
           description: "Text not found"
 
-  /text/{id}/owners/${ownerId}:
+  /text/{id}/owner/${ownerId}:
     delete:
       summary: "Delete a owner of a text"
-      operationId: removeOwners
+      operationId: removeOwner
+      tags:
+        - owners
       parameters:
         - name: id
           in: path
@@ -648,16 +653,71 @@ paths:
         404:
           description: Text not found
 
-    /store/refreshIndexes:
-        post:
-            summary: "Trigger the refresh of the indexes"
-            operationId: refreshIndexes
-            responses:
-                200:
-                    description: Indexes refreshed
+  /store/refreshIndex:
+    post:
+      summary: "Trigger the refresh of the text index"
+      operationId: refreshIndex
+      responses:
+        200:
+          description: Indexes refreshed
+
+  /bulk:
+    post:
+      summary: "Perform bulk operations"
+      operationId: "Perform bulk operations"
+      requestBody:
+        description: "List of operations to perform"
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/SingleOperation"
+      responses:
+        200:
+          description: "Bulk operation successful"
 
 components:
   schemas:
+    AccountIdentity:
+      type: object
+      required:
+        - account
+        - identity
+      properties:
+        account:
+          type: object
+          properties:
+            id:
+              type: string
+              description: ID of the owner account
+
+        identity:
+          type: object
+          properties:
+            id:
+              type: string
+              description: ID of the owner identity
+    SingleOperation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - createText
+            - deleteText
+            - updateText
+            - addAuthor
+            - removeAuthorAccount
+            - removeAuthorIdentity
+            - removeOwner
+            
+        parameter:
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/Text"
+            - type: string
+      
     Text:
       type: object
       properties:
@@ -696,23 +756,3 @@ components:
           items:
               type: string
               format: base64-url
-
-    AccountIdentity:
-      type: object
-      required:
-        - account
-        - identity
-      properties:
-        account:
-          type: object
-          properties:
-            id:
-              type: string
-              description: ID of the owner account
-
-        identity:
-          type: object
-          properties:
-            id:
-              type: string
-              description: ID of the owner identity

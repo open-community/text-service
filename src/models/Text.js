@@ -94,6 +94,24 @@ async function get(id) {
     }
 }
 
+/**
+ * Refresh the store index.
+ * @public
+ */
+async function refreshIndex() {
+    try {
+        await getClient().indices.refresh({
+            index: ELASTICSEARCH_INDEX,
+        });
+    }
+    catch (err) {
+        if (err.status === 404) {
+            return;
+        }
+        throw err;
+    }
+}
+
 // ============================================================
 // Exports
 export {
@@ -101,4 +119,5 @@ export {
     deleteText as delete,
     findText as find,
     get,
+    refreshIndex,
 };

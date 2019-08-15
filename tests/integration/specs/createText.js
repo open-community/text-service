@@ -110,7 +110,7 @@ describe('Simple situation', () => {
             assert.instanceOf(error, errors.http.ClientError, message);
         };
 
-        it('throw an error if invalid account', async () => {
+        it('throw an error if invalid author\'s account', async () => {
             const textToCreate = faker.text.generate({
                 authors: [{ account: resources.accounts.A, identity: resources.identities.A }],
                 includeId: false,
@@ -118,6 +118,30 @@ describe('Simple situation', () => {
             });
 
             textToCreate.authors[0].account = `x${textToCreate.authors[0].account}`;
+
+            await assertCreateError(textToCreate);
+        });
+
+        it('throw an error if invalid author\'s identity', async () => {
+            const textToCreate = faker.text.generate({
+                authors: [{ account: resources.accounts.A, identity: resources.identities.A }],
+                includeId: false,
+                owners: [resources.accounts.A],
+            });
+
+            textToCreate.authors[0].identity = `x${textToCreate.authors[0].identity}`;
+
+            await assertCreateError(textToCreate);
+        });
+
+        it('throw an error if invalid owner', async () => {
+            const textToCreate = faker.text.generate({
+                authors: [{ account: resources.accounts.A, identity: resources.identities.A }],
+                includeId: false,
+                owners: [resources.accounts.A],
+            });
+
+            textToCreate.owners[0] = `x${textToCreate.owners[0]}`;
 
             await assertCreateError(textToCreate);
         });

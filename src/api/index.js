@@ -4,7 +4,7 @@ import createText from './createText';
 import deleteText from './deleteText';
 import getText from './getText';
 import findTexts from './findTexts';
-import refreshIndexes from './refreshIndexes';
+import refreshIndex from './refreshIndex';
 
 // ============================================================
 // Functions
@@ -19,8 +19,8 @@ function routes(app) {
     app.get(route, wrapRoute(getText));
     app.delete(route, wrapRoute(deleteText));
 
-    route = '/store/refreshIndexes';
-    app.get(route, wrapRoute(refreshIndexes));
+    route = '/store/refreshIndex';
+    app.post(route, wrapRoute(refreshIndex));
 }
 
 function wrapRoute(route) {
