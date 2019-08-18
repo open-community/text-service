@@ -8,6 +8,7 @@ import Client, { errors, Services } from '@open-community/internal-client';
 import * as tools from '@open-community/service-tools';
 
 import { getConfig, ResourceManager } from '../setup';
+import { loadAll } from '../helpers';
 
 // ============================================================
 // Tests
@@ -69,8 +70,26 @@ describe('Simple situation', () => {
             'Created text is equal to fetched text',
         );
 
+        let findedTextIterator;
         // Find text
-        const findedText = await client.text.find({ id });
+        try {
+            findedTextIterator = client.text.find({ id });
+        }
+        catch (err) {
+            console.log('findedTextIterator =====');
+            console.error(err);
+            throw err;
+        }
+        
+        let findedText;
+        try {
+            findedText = await loadAll(findedTextIterator);
+        }
+        catch (err) {
+            console.log('findedText =====');
+            console.error(err);
+            throw err;
+        }
 
         assert.isArray(
             findedText,

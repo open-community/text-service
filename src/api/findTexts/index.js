@@ -27,7 +27,10 @@ async function findTexts(req, res) {
         ...source,
     }));
 
-    res.json(texts);
+    res.json({
+        total: results.hits.total.value,
+        list: texts,
+    });
 }
 
 // ============================================================

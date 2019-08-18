@@ -20,9 +20,13 @@ rules:
         - error
         - 4
 
+    no-restricted-syntax:
+        - off
+
     no-use-before-define:
         - off
 
     import/prefer-default-export:
         - off
 
+        
