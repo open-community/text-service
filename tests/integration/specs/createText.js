@@ -70,24 +70,21 @@ describe('Simple situation', () => {
             'Created text is equal to fetched text',
         );
 
+
         let findedTextIterator;
         // Find text
         try {
             findedTextIterator = client.text.find({ id });
         }
         catch (err) {
-            console.log('findedTextIterator =====');
-            console.error(err);
             throw err;
         }
-        
+
         let findedText;
         try {
             findedText = await loadAll(findedTextIterator);
         }
         catch (err) {
-            console.log('findedText =====');
-            console.error(err);
             throw err;
         }
 

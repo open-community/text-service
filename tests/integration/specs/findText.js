@@ -67,9 +67,7 @@ describe('findText', () => {
 
     it('find all texts if no parameters provided', async function it() {
         this.timeout(60000);
-        console.log('finding...');
         const texts = await client.text.find();
-        console.log('found');
 
         assert.isAtLeast(
             texts.length,
@@ -77,11 +75,7 @@ describe('findText', () => {
             'return at least the same number of created texts',
         );
 
-        console.log('A');
-
         const ids = texts.maps(({ id }) => id);
-
-        console.log('B');
 
         assert.equal(
             texts,
